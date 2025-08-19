@@ -1,3 +1,10 @@
-export default function Home() {
-  return <main style={{padding:20}}>Hi! Go to <a href="/test">/test</a> to try the APIs.</main>;
+import { redirect } from 'next/navigation';
+import { getServerSupabase } from '@/lib/supabase/server';
+
+export default async function Home() {
+  const supabase = getServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
+  redirect('/posts'); // or render something else here
 }
