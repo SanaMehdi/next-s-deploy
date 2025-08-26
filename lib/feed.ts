@@ -1,0 +1,76 @@
+'use client'
+import { createClient } from './supabase/client'
+import type { Audience, PostRow } from './types'
+
+export async function getCurrentUserId(): Promise<string | null> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  return user?.id ?? null;
+}
+
+export async function fetchFeed(): Promise<PostRow[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('posts')
+    .select(`
+      id, author_id, title, content, audience, created_at,
+
+      author:profiles!posts_author_id_fkey (
+        id, username, full_name, avatar_url
+      ),
+
+      comments:post_comments (
+        id, post_id, user_id, content, created_at,
+        user:profiles!post_comments_user_id_fkey (
+          id, username, full_name, avatar_url
+        )
+      ),
+
+      likes:post_likes (
+        post_id, user_id
+      )
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []) as unknown as PostRow[];
+}
+
+export async function createPost(input: { title: string; content: string; audience: Audience }) {
+  const supabase = createClient();
+  const uid = await getCurrentUserId();
+  if (!uid) throw new Error('Not signed in');
+  const { error } = await supabase.from('posts').insert({
+    author_id: uid,
+    user_id: uid,                 // keep legacy column happy
+    title: input.title || null,
+    content: input.content || null,
+    audience: input.audience
+  });
+  if (error) throw error;
+}
+
+export async function toggleLike(postId: string) {
+  const supabase = createClient();
+  const uid = await getCurrentUserId();
+  if (!uid) throw new Error('Not signed in');
+  const { data: existing, error: checkErr } = await supabase
+    .from('post_likes').select('*').eq('post_id', postId).eq('user_id', uid).maybeSingle();
+  if (checkErr) throw checkErr;
+  if (existing) {
+    const { error } = await supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', uid);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from('post_likes').insert({ post_id: postId, user_id: uid });
+    if (error) throw error;
+  }
+}
+
+export async function addComment(postId: string, content: string) {
+  const supabase = createClient();
+  const uid = await getCurrentUserId();
+  if (!uid) throw new Error('Not signed in');
+  if (!content.trim()) return;
+  const { error } = await supabase.from('post_comments').insert({ post_id: postId, user_id: uid, content: content.trim() });
+  if (error) throw error;
+}

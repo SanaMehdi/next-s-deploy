@@ -1,38 +1,5 @@
 {
-  "node": {
-    "373e800e7d411836be0c44cc7d1ab4058f2e65bd": {
-      "workers": {
-        "app/posts/page": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2FUsers%2Fsanamehdi%2FDownloads%2Fnextjs-supabase-shadcn-myApp%2Fapp%2Fposts%2Factions.ts%22%2C%5B%22updatePost%22%2C%22createPost%22%2C%22signOut%22%2C%22deletePost%22%5D%5D%5D&__client_imported__=!"
-      },
-      "layer": {
-        "app/posts/page": "rsc"
-      }
-    },
-    "48978c9388ff7e753d9e66016124f22a83cf7bc4": {
-      "workers": {
-        "app/posts/page": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2FUsers%2Fsanamehdi%2FDownloads%2Fnextjs-supabase-shadcn-myApp%2Fapp%2Fposts%2Factions.ts%22%2C%5B%22updatePost%22%2C%22createPost%22%2C%22signOut%22%2C%22deletePost%22%5D%5D%5D&__client_imported__=!"
-      },
-      "layer": {
-        "app/posts/page": "rsc"
-      }
-    },
-    "9e56617c8772a2a0bd24d8c321c73755297b6fb4": {
-      "workers": {
-        "app/posts/page": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2FUsers%2Fsanamehdi%2FDownloads%2Fnextjs-supabase-shadcn-myApp%2Fapp%2Fposts%2Factions.ts%22%2C%5B%22updatePost%22%2C%22createPost%22%2C%22signOut%22%2C%22deletePost%22%5D%5D%5D&__client_imported__=!"
-      },
-      "layer": {
-        "app/posts/page": "rsc"
-      }
-    },
-    "e5e18f06cb9d267066441735cc282b3f31b4e942": {
-      "workers": {
-        "app/posts/page": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2FUsers%2Fsanamehdi%2FDownloads%2Fnextjs-supabase-shadcn-myApp%2Fapp%2Fposts%2Factions.ts%22%2C%5B%22updatePost%22%2C%22createPost%22%2C%22signOut%22%2C%22deletePost%22%5D%5D%5D&__client_imported__=!"
-      },
-      "layer": {
-        "app/posts/page": "rsc"
-      }
-    }
-  },
+  "node": {},
   "edge": {},
-  "encryptionKey": "POk8W0fbDc3XaCMArONUk+Nub/SS/4Ozq34l27Z3BtI="
+  "encryptionKey": "lfnAKcnnDaH08WUtJWo3FLCxSpxgd7nyaFirLIJuNII="
 }
