@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
+import NavBar from '@/components/NavBar'
 import PostComposer from '@/components/feed/PostComposer'
 import PostCard from '@/components/feed/PostCard'
 import { fetchFeed } from '@/lib/feed'
@@ -50,6 +51,7 @@ export default function FeedPage() {
 
   return (
     <div className="min-h-screen bg-slate-100 py-10">
+      <NavBar />
       <div className="max-w-3xl mx-auto px-4">
         <header className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-slate-900">Feed</h1>

@@ -11,5 +11,7 @@ export async function POST(req: Request) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return NextResponse.json({ error: error.message }, { status: 401 });
 
-  return NextResponse.json({ user: data.user });
+  // Return the entire session object. It includes the user, access_token,
+  // and refresh_token, which is more useful for the client.
+  return NextResponse.json({ session: data.session });
 }
