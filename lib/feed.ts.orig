@@ -34,13 +34,9 @@ export async function fetchFeed(): Promise<PostRow[]> {
 
   if (error) throw error;
   // Supabase returns a to-one relationship as an array. We need to flatten it.
-  const posts = ((postsData as any) ?? []).map((p: any) => ({
+  const posts = (postsData ?? []).map(p => ({
     ...p,
-    author: Array.isArray(p.author) ? p.author[0] : p.author,
-    comments: (p.comments ?? []).map((c: any) => ({
-      ...c,
-      user: Array.isArray(c.user) ? c.user[0] : c.user,
-    })),
+    author: Array.isArray(p.author) ? p.author[0] : p.author
   }));
 
   return posts as PostRow[];

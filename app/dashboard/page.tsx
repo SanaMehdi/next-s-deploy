@@ -1,11 +1,11 @@
 import { redirect } from 'next/navigation';
-import { getServerClient } from '@/lib/supabase/server';
+import { getServerSupabase } from '@/lib/supabase/server';
 import { TopBar } from '../components/TopBar';
 import CreatePost from './parts/CreatePost';
 import PostsList from './parts/PostsList';
 
 export default async function DashboardPage() {
-  const supabase = await getServerClient();
+  const supabase = getServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) redirect('/login');

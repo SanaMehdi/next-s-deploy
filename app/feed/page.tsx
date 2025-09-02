@@ -5,7 +5,7 @@ import PostComposer from '@/components/feed/PostComposer'
 import PostCard from '@/components/feed/PostCard'
 import { fetchFeed } from '@/lib/feed'
 import type { PostRow } from '@/lib/types'
-import { createClient } from '@/lib/supabase/client'
+import { supabase } from '@/lib/supabase/client'
 
 export default function FeedPage() {
   const [posts, setPosts] = useState<PostRow[]>([])
@@ -24,8 +24,6 @@ export default function FeedPage() {
 
   // Always load the feed (shows Public posts even before session resolves)
   useEffect(() => {
-    const supabase = createClient();
-
     // Only load once on mount
     load();
 

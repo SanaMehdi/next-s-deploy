@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
+
 export default function SettingsPage() {
-  const supabase = createClient();
   const [profile, setProfile] = useState<any>(null);
   const [bio, setBio] = useState('');
   const [twofa, setTwofa] = useState(false);

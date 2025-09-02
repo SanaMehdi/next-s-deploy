@@ -1,0 +1,16 @@
+@@ -49,9 +49,13 @@
+   // Supabase returns a to-one relationship as an array. We need to flatten it.
+   // We also cast to `any` to handle the type mismatch from Supabase's generated types.
+-  const posts = (postsData as any[]).map((p: any) => ({
++  const posts = (postsData as any[]).map(p => ({
+     ...p,
+-    author: Array.isArray(p.author) ? p.author[0] : p.author
++    author: Array.isArray(p.author) ? p.author[0] : p.author,
++    comments: (p.comments ?? []).map((c: any) => ({
++      ...c,
++      user: Array.isArray(c.user) ? c.user[0] : c.user,
++    })),
+   }));
+ 
+   const displayName = profile.full_name || profile.username;
+ 

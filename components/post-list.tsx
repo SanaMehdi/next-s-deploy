@@ -64,7 +64,7 @@ function PostItem({ post, canEdit }: { post: Post; canEdit: boolean }) {
     if (!confirm("Delete this post?")) return;
     setPending(true);
     try {
-      const res = await fetch(`/actions/delete-post?id=${post.id}`, { method: "POST" });
+      const res = await fetch(`/actions/delete-post?id=${post.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error(await res.text());
       toast("Deleted");
       router.refresh();

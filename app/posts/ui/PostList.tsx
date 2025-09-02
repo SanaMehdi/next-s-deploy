@@ -11,7 +11,7 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
-import { getBrowserSupabase } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 
 type Post = { id: string; title: string; content: string; created_at: string; updated_at: string; user_id?: string };
 
@@ -26,8 +26,7 @@ export function PostList({ initialPosts, userId }: { initialPosts: Post[]; userI
 
   // 🔄 Realtime: listen only to my rows
   useEffect(() => {
-    const supabase = getBrowserSupabase();
-    const channel = supabase
+    const channel = supabase // Use the module-scoped client
       .channel('posts-realtime')
       .on(
         'postgres_changes',
@@ -60,9 +59,9 @@ export function PostList({ initialPosts, userId }: { initialPosts: Post[]; userI
   const save = (form: HTMLFormElement) =>
     startTransition(async () => {
       const fd = new FormData(form);
+      const id = String(fd.get('id'));
       try {
-        await updatePost(fd);
-        const id = String(fd.get('id'));
+        await updatePost(id, fd);
         setPosts(prev =>
           prev.map(p => (p.id === id ? { ...p, title: String(fd.get('title')), content: String(fd.get('content')) } : p))
         );

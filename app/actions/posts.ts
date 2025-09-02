@@ -1,1 +1,1 @@
-export * from '../posts/actions';
+export * from '@/app/posts/actions';

@@ -1,30 +1,36 @@
 'use client'
 import { useState } from 'react'
-import { getBrowserSupabase } from '@/lib/supabase/client'
+import { supabase } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function LoginUI() {
+export default function LoginPage() {
   const router = useRouter()
-  const params = useSearchParams()
-  const redirectedFrom = params.get('redirectedFrom') || '/feed'
+  const searchParams = useSearchParams()
+  const redirectedFrom = searchParams.get('redirectedFrom') || '/feed'
 
-  const [mode, setMode] = useState<'signIn' | 'signUp'>('signIn')
+  const [view, setView] = useState<'signIn' | 'signUp'>('signIn')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const handleAuth = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
 
-    if (!email.trim()) { setError('Please enter your email.'); return }
-    if (!password.trim()) { setError('Please enter your password.'); return }
+    if (!email.trim()) {
+      setError('Please enter your email.')
+      return
+    }
+    if (!password.trim()) {
+      setError('Please enter your password.')
+      return
+    }
 
     setLoading(true)
-    const supabase = getBrowserSupabase();
+
     try {
-      if (mode === 'signIn') {
+      if (view === 'signIn') {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
       } else {
@@ -32,22 +38,19 @@ export default function LoginUI() {
         if (error) throw error
       }
       router.push(redirectedFrom)
-    } catch (err: any) {
-      setError(err?.message ?? 'Sign-in failed')
+    } catch (e: any) {
+      setError(e?.message ?? 'Sign-in failed')
     } finally {
       setLoading(false)
     }
   }
 
-  async function signInWithGoogle() {
+  const handleGoogleSignIn = async () => {
     setError(null)
-    const supabase = getBrowserSupabase();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: typeof window !== 'undefined'
-          ? `${window.location.origin}/auth/callback`
-          : undefined,
+        redirectTo: `${window.location.origin}/auth/callback`,
       },
     })
     if (error) setError(error.message)
@@ -57,16 +60,14 @@ export default function LoginUI() {
     <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 p-6">
         <h1 className="text-2xl font-bold text-slate-900 mb-4">
-          {mode === 'signIn' ? 'Sign in' : 'Create account'}
+          {view === 'signIn' ? 'Sign in' : 'Create account'}
         </h1>
-
         {error && (
           <div className="mb-4 rounded-lg bg-red-50 text-red-700 text-sm px-3 py-2 ring-1 ring-red-200">
             {error}
           </div>
         )}
-
-        <form onSubmit={onSubmit} className="space-y-3">
+        <form onSubmit={handleAuth} className="space-y-3">
           <input
             type="email"
             required
@@ -89,22 +90,29 @@ export default function LoginUI() {
               disabled={loading}
               className="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm hover:bg-slate-800 disabled:opacity-50"
             >
-              {loading ? (mode === 'signIn' ? 'Signing in…' : 'Signing up…') : (mode === 'signIn' ? 'Sign in' : 'Sign up')}
+              {loading
+                ? view === 'signIn'
+                  ? 'Signing in…'
+                  : 'Signing up…'
+                : view === 'signIn'
+                ? 'Sign in'
+                : 'Sign up'}
             </button>
             <button
               type="button"
               className="text-sm text-slate-600 hover:text-slate-900"
-              onClick={() => setMode(mode === 'signIn' ? 'signUp' : 'signIn')}
+              onClick={() => setView(view === 'signIn' ? 'signUp' : 'signIn')}
             >
-              {mode === 'signIn' ? 'Need an account? Sign up' : 'Have an account? Sign in'}
+              {view === 'signIn'
+                ? 'Need an account? Sign up'
+                : 'Have an account? Sign in'}
             </button>
           </div>
         </form>
-
         <div className="mt-4">
           <button
             type="button"
-            onClick={signInWithGoogle}
+            onClick={handleGoogleSignIn}
             className="w-full px-4 py-2 rounded-xl bg-slate-100 text-slate-800 text-sm hover:bg-slate-200"
           >
             Continue with Google

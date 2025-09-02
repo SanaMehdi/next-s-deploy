@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 
 export default function AdminPage() {
-  const supabase = createClient();
   const [reports, setReports] = useState<any[]>([]);
   const [flags, setFlags] = useState<any[]>([]);
 

@@ -2,13 +2,12 @@
 
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 export default function UserLinksPage() {
   const { id } = useParams();
-  const supabase = createClient();
   const [links, setLinks] = useState<any[]>([]);
   const [url, setUrl] = useState('');
   const [label, setLabel] = useState('');

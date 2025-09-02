@@ -1,10 +1,10 @@
 export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server';
-import { getServerClient } from '@/lib/supabase/server';
+import { getServerSupabase } from '@/lib/supabase/server';
 
 export async function GET(req: Request) {
-  const supabase = await getServerClient();
+  const supabase = getServerSupabase();
   const url = new URL(req.url);
   const userId = url.searchParams.get('user_id') ?? undefined;
 
@@ -17,7 +17,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const supabase = await getServerClient();
+  const supabase = getServerSupabase();
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

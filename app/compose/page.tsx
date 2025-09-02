@@ -1,12 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
 export default function ComposePage() {
-  const supabase = createClient();
   const [content, setContent] = useState('');
   const [audience, setAudience] = useState('Public');
   const [saving, setSaving] = useState(false);

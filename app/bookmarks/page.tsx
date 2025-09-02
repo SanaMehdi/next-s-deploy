@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 
 export default function BookmarksPage() {
-  const supabase = createClient();
   const [folders, setFolders] = useState<any[]>([]);
   const [bookmarks, setBookmarks] = useState<any[]>([]);
   const [selected, setSelected] = useState<string | null>(null);

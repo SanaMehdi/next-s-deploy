@@ -1,10 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 
 export default function AnalyticsPage() {
-  const supabase = createClient();
   const [analytics, setAnalytics] = useState<any[]>([]);
 
   useEffect(() => {

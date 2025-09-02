@@ -2,12 +2,12 @@
 
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
+
 
 export default function PostDetailPage() {
   const { id } = useParams();
-  const supabase = createClient();
   const [post, setPost] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [reactions, setReactions] = useState<any[]>([]);

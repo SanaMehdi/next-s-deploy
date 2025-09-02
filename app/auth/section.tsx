@@ -1,63 +1,121 @@
-"use client";
+'use client';
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { supabase } from "@/lib/supabase/client";
 
-export default function AuthClient() {
-  const sp = useSearchParams();
-  const router = useRouter();
-  const mode = sp.get("mode") === "signup" ? "signup" : "signin";
+export default function AuthSection() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirectedFrom = searchParams.get("redirectedFrom") || "/feed";
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+    const [view, setView] = useState<'signIn' | 'signUp'>('signIn');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({ email, password });
-        if (error) throw error;
-        toast("Account created. Check your email if confirmation is required.");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        toast("Signed in");
-        router.push("/");
-        router.refresh();
-      }
-    } catch (err: any) {
-      toast.error(err.message ?? "Auth error");
-    }
-  };
+    const handleAuth = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setError(null);
 
-  return (
-    <div className="mx-auto max-w-sm">
-      <Card>
-        <CardHeader>
-          <CardTitle>{mode === "signup" ? "Create account" : "Sign in"}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-3" onSubmit={submit}>
-            <Input type="email" placeholder="you@example.com" value={email} onChange={e=>setEmail(e.target.value)} />
-            <Input type="password" placeholder="••••••••" value={password} onChange={e=>setPassword(e.target.value)} />
-            <Button className="w-full" type="submit">
-              {mode === "signup" ? "Sign up" : "Sign in"}
-            </Button>
-          </form>
-          <div className="mt-3 text-xs text-muted-foreground">
-            {mode === "signup" ? (
-              <>Already have an account? <a className="underline" href="/auth">Sign in</a></>
-            ) : (
-              <>New here? <a className="underline" href="/auth?mode=signup">Create account</a></>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+        if (!email.trim()) {
+            setError("Please enter your email.");
+            return;
+        }
+        if (!password.trim()) {
+            setError("Please enter your password.");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            if (view === 'signIn') {
+                const { error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+            } else {
+                const { error } = await supabase.auth.signUp({ email, password });
+                if (error) throw error;
+            }
+            router.push(redirectedFrom);
+        } catch (err: any) {
+            setError(err?.message ?? "Authentication failed");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleSignIn = async () => {
+        setError(null);
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: `${window.location.origin}/auth/callback`,
+            },
+        });
+        if (error) setError(error.message);
+    };
+
+    return (
+        <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
+            <Card className="w-full max-w-md">
+                <CardHeader>
+                    <CardTitle>{view === 'signIn' ? 'Sign in' : 'Create account'}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {error && (
+                        <div className="mb-4 rounded-lg bg-red-50 text-red-700 text-sm px-3 py-2 ring-1 ring-red-200">
+                            {error}
+                        </div>
+                    )}
+                    <form onSubmit={handleAuth} className="space-y-3">
+                        <Input
+                            type="email"
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Email"
+                            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                        />
+                        <Input
+                            type="password"
+                            required
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Password"
+                            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                        />
+                        <div className="flex items-center justify-between">
+                            <Button type="submit" disabled={loading}>
+                                {loading
+                                    ? (view === 'signIn' ? 'Signing in…' : 'Signing up…')
+                                    : (view === 'signIn' ? 'Sign in' : 'Sign up')}
+                            </Button>
+                            <button
+                                type="button"
+                                className="text-sm text-slate-600 hover:text-slate-900"
+                                onClick={() => setView(view === 'signIn' ? 'signUp' : 'signIn')}
+                            >
+                                {view === 'signIn' ? 'Need an account? Sign up' : 'Have an account? Sign in'}
+                            </button>
+                        </div>
+                    </form>
+                    <div className="mt-4">
+                        <Button
+                            type="button"
+                            onClick={handleGoogleSignIn}
+                            className="w-full"
+                            variant="outline"
+                        >
+                            Continue with Google
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
 }

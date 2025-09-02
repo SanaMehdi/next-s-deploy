@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export default function PollsPage() {
-  const supabase = createClient();
   const [polls, setPolls] = useState<any[]>([]);
   const [question, setQuestion] = useState('');
   const [option, setOption] = useState('');

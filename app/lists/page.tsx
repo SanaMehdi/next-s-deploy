@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export default function ListsPage() {
-  const supabase = createClient();
   const [lists, setLists] = useState<any[]>([]);
   const [name, setName] = useState('');
 
