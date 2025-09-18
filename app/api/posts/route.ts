@@ -22,12 +22,12 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { title, body = '' } = await req.json();
+  const { title, content = '' } = await req.json();
   if (!title) return NextResponse.json({ error: 'title is required' }, { status: 400 });
 
   const { data, error } = await supabase
     .from('posts')
-    .insert({ user_id: user.id, title, body })
+    .insert({ user_id: user.id, title, content })
     .select()
     .single();
 

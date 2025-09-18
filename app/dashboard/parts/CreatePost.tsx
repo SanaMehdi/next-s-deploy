@@ -1,34 +1,32 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { createPost } from '@/app/posts/actions';
 
 export default function CreatePost() {
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
-  const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const onCreate = async (e: React.FormEvent) => {
+  const onCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setMsg(null);
-    if (!title.trim()) {
+    const formData = new FormData(e.currentTarget);
+    const title = String(formData.get('title') || '').trim();
+
+    if (!title) {
       setMsg('Title is required.');
       return;
     }
+
     try {
       setSaving(true);
-      const res = await fetch('/api/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: title.trim(), body }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setMsg(data?.error ?? 'Failed to create post');
+      const { error } = await createPost(formData);
+      if (error) {
+        setMsg(error);
         return;
       }
-      // Simple refresh so the server page re-fetches
-      window.location.reload();
+      formRef.current?.reset();
     } catch (e: any) {
       setMsg(e?.message ?? 'Something went wrong');
     } finally {
@@ -37,18 +35,22 @@ export default function CreatePost() {
   };
 
   return (
-    <form onSubmit={onCreate} className="space-y-3">
+    <form ref={formRef} onSubmit={onCreate} className="space-y-3">
       <input
+        name="title"
         className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200"
         placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
       />
       <textarea
+        name="content"
         className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200 min-h-[90px]"
-        placeholder="Body (optional)"
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
+        placeholder="Content (optional)"
+      />
+      <input
+        type="file"
+        name="image"
+        accept="image/*"
+        className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200"
       />
       {msg && <p className="text-sm text-red-600">{msg}</p>}
       <button

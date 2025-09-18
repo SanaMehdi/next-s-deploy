@@ -36,10 +36,26 @@ export default function FeedPage() {
     // Realtime refresh
     const channel = supabase
       .channel('feed-rt')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, load)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'post_likes' }, load)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'post_comments' }, load)
-      .subscribe();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, (payload) => {
+        console.log('Realtime event on posts:', payload);
+        load();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'post_likes' }, (payload) => {
+        console.log('Realtime event on post_likes:', payload);
+        load();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'post_comments' }, (payload) => {
+        console.log('Realtime event on post_comments:', payload);
+        load();
+      })
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Realtime channel subscribed successfully!');
+        }
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Realtime channel error:', err);
+        }
+      });
 
     return () => {
       sub.subscription.unsubscribe();

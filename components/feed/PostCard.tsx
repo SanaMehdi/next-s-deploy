@@ -55,6 +55,7 @@ export default function PostCard({ post, currentUserId }: { post: PostRow; curre
       {/* Body */}
       {post.title && <h3 className="font-semibold text-slate-900 text-xl mt-4">{post.title}</h3>}
       {post.content && <p className="text-slate-700 mt-2 whitespace-pre-wrap">{post.content}</p>}
+      {post.image_url && <img key={post.id} src={post.image_url} alt="Post image" className="mt-4 w-full h-auto rounded-lg" />}
 
       {/* Actions */}
       <div className="flex items-center gap-3 mt-4">

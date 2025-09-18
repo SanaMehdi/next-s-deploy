@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { deletePost } from '@/app/posts/actions';
 
 type Post = {
   id: string;
   user_id: string;
   title: string;
-  body: string | null;
+  content: string | null;
+  image_url?: string | null;
   created_at: string;
 };
 
@@ -92,17 +94,29 @@ export default function PostsList({ initialPosts }: { initialPosts: Post[] }) {
                   </button>
                 </>
               ) : (
-                <button
-                  onClick={() => startEdit(p)}
-                  className="rounded-lg border px-3 py-1.5 text-sm"
-                >
-                  Edit
-                </button>
+                <>
+                  <button
+                    onClick={() => startEdit(p)}
+                    className="rounded-lg border px-3 py-1.5 text-sm"
+                  >
+                    Edit
+                  </button>
+                  <form action={deletePost}>
+                    <input type="hidden" name="id" value={p.id} />
+                    <button
+                      type="submit"
+                      className="rounded-lg border border-red-500 text-red-500 px-3 py-1.5 text-sm"
+                    >
+                      Delete
+                    </button>
+                  </form>
+                </>
               )}
             </div>
           </div>
 
-          {p.body && <p className="text-sm text-gray-600 mt-2">{p.body}</p>}
+          {p.content && <p className="text-sm text-gray-600 mt-2">{p.content}</p>}
+          {p.image_url && <img key={p.id} src={p.image_url} alt="Post image" className="mt-2 w-full h-auto rounded-lg" />}
 
           {/* ✅ Fix hydration mismatch by using deterministic formatting */}
           <div className="text-xs text-gray-500 mt-2" suppressHydrationWarning>

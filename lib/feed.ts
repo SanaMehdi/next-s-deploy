@@ -13,7 +13,7 @@ export async function fetchFeed(): Promise<PostRow[]> {
   const { data: postsData, error } = await supabase
     .from('posts')
     .select(`
-      id, author_id, title, content, audience, created_at,
+      id, author_id, title, content, image_url, audience, created_at,
 
       author:profiles!posts_author_id_fkey (
         id, username, full_name, avatar_url
