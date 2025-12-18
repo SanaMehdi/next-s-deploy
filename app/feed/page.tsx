@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react'
 import NavBar from '@/components/NavBar'
 import PostComposer from '@/components/feed/PostComposer'
 import PostCard from '@/components/feed/PostCard'
+import { PostSkeleton } from '@/components/feed/PostSkeleton'
 import { fetchFeed } from '@/lib/feed'
 import type { PostRow } from '@/lib/types'
 import { supabase } from '@/lib/supabase/client'
@@ -11,6 +12,7 @@ export default function FeedPage() {
   const [posts, setPosts] = useState<PostRow[]>([])
   const [loading, setLoading] = useState(true)
   const [uid, setUid] = useState<string | null>(null)
+  const [open, setOpen] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -64,23 +66,37 @@ export default function FeedPage() {
   }, [load]);
 
   return (
-    <div className="min-h-screen bg-slate-100 py-10">
-      <NavBar />
-      <div className="max-w-3xl mx-auto px-4">
-        <header className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-slate-900">Feed</h1>
-        </header>
+    <main className="flex justify-center bg-gray-50 min-h-screen">
+      <section className="w-full max-w-[480px] px-2 py-4 space-y-4">
+        <button
+          onClick={() => setOpen(true)}
+          className="border bg-white px-4 py-3 rounded-sm text-sm text-gray-500 hover:bg-gray-50 w-full"
+        >
+          Create a new post...
+        </button>
 
-        <PostComposer onPublished={load} />
+        {open && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+            <div className="bg-white w-full max-w-md rounded-sm">
+              <PostComposer onPublished={load} onClose={() => setOpen(false)} />
+            </div>
+          </div>
+        )}
 
         {loading ? (
-          <div className="text-sm text-slate-500">Loading…</div>
+          <>
+            <PostSkeleton />
+            <PostSkeleton />
+            <PostSkeleton />
+          </>
         ) : posts.length === 0 ? (
-          <div className="text-sm text-slate-500">No posts yet.</div>
+          <div className="text-center text-sm text-gray-500 py-10">
+            No posts yet. Be the first to share ✨
+          </div>
         ) : (
           posts.map((p) => <PostCard key={p.id} post={p} currentUserId={uid} />)
         )}
-      </div>
-    </div>
+      </section>
+    </main>
   )
 }

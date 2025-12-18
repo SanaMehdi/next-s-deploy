@@ -46,7 +46,12 @@ export async function fetchFeed(): Promise<PostRow[]> {
   return posts as PostRow[];
 }
 
-export async function createPost(input: { title: string; content: string; audience: Audience }) {
+export async function createPost(input: { 
+  title: string; 
+  content: string; 
+  audience: Audience;
+  groupId?: string;
+}) {
   const supabase = getBrowserSupabase();
   const uid = await getCurrentUserId();
   if (!uid) throw new Error('Not signed in');

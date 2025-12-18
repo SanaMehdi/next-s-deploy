@@ -1,3 +1,5 @@
+// Explain this API route and suggest improvements for performance and security
+
 export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server';

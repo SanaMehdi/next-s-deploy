@@ -2,46 +2,96 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { Input } from '@/components/ui/input';
+import { type PostRow } from '@/lib/types';
+import PostCard from '@/components/feed/PostCard';
 
 export default function ExplorePage() {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<any[]>([]);
-  const [trending, setTrending] = useState<any[]>([]);
+  const [posts, setPosts] = useState<PostRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedPost, setSelectedPost] = useState<PostRow | null>(null);
 
   useEffect(() => {
-    supabase.from('tags').select('*').limit(10).then(({ data }) => setTrending(data || []));
+    const fetchPosts = async () => {
+      setLoading(true);
+      // Fetch all public posts that have an image, along with author and like details for the PostCard.
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*, author:profiles(*), likes(*)')
+        .not('image_url', 'is', null)
+        .eq('audience', 'Public')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching explore posts:', error);
+      } else {
+        // Manually add comments_count for hover, assuming it's not directly queryable here.
+        // In a real app, this might be a computed column or an RPC.
+        const postsWithCommentCounts = (data || []).map(p => ({ ...p, comments_count: 0 }));
+        setPosts(postsWithCommentCounts);
+      }
+      setLoading(false);
+    };
+
+    fetchPosts();
   }, []);
 
-  const handleSearch = async () => {
-    if (!query) return;
-    const { data: users } = await supabase.from('profiles').select('*').ilike('username', `%${query}%`);
-    const { data: posts } = await supabase.from('posts').select('*').ilike('content', `%${query}%`);
-    setResults([...(users || []), ...(posts || [])]);
-  };
-
   return (
-    <div className="max-w-xl mx-auto mt-8">
-      <Input
-        value={query}
-        onChange={e => setQuery(e.target.value)}
-        placeholder="Search users, posts, tags"
-        className="mb-4"
-      />
-      <button onClick={handleSearch} className="mb-4">Search</button>
-      <div>
-        <h3 className="font-bold mb-2">Trending Tags</h3>
-        <div className="flex gap-2 flex-wrap">
-          {trending.map(tag => (
-            <span key={tag.id} className="bg-gray-200 rounded px-2 py-1 text-sm">#{tag.name}</span>
-          ))}
-        </div>
-      </div>
-      <div className="mt-4">
-        {results.map(r => (
-          <div key={r.id} className="mb-2 border-b pb-2">{r.username || r.content}</div>
-        ))}
-      </div>
-    </div>
+    <main className="flex justify-center bg-gray-50 min-h-screen">
+      <section className="w-full max-w-[520px] px-2 py-4">
+        {loading ? (
+          <div className="grid grid-cols-3 gap-1">
+            {/* Skeleton loaders for the grid */}
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div key={i} className="aspect-square bg-gray-200 animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-1">
+            {posts.map(post => (
+              post.image_url && (
+                <div
+                  key={post.id}
+                  onClick={() => setSelectedPost(post)}
+                  className="group relative aspect-square bg-gray-100 overflow-hidden cursor-pointer"
+                >
+                  <img
+                    src={post.image_url}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+
+                  {/* Hover Overlay */}
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-6 text-white">
+                    <div className="flex items-center gap-2">
+                      <span>❤️</span>
+                      <span className="font-semibold">{post.likes?.length ?? 0}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>💬</span>
+                      <span className="font-semibold">{post.comments_count}</span>
+                    </div>
+                  </div>
+                </div>
+              )
+            ))}
+          </div>
+        )}
+
+        {selectedPost && (
+          <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center">
+            <div className="bg-white w-full max-w-[520px] rounded-sm relative">
+              <button
+                onClick={() => setSelectedPost(null)}
+                className="absolute top-2 right-2 text-xl z-10"
+              >
+                ✕
+              </button>
+
+              <PostCard post={selectedPost} />
+            </div>
+          </div>
+        )}
+      </section>
+    </main>
   );
 }

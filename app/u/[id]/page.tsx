@@ -26,7 +26,7 @@ export default async function UserProfilePage({ params }: { params: { id: string
   const { data: postsData = [] } = await supabase
     .from('posts')
     .select(`
-      id, author_id, title, content, audience, created_at,
+      id, author_id, title, content, image_url, audience, created_at,
       author:profiles!posts_author_id_fkey (
         id, username, full_name, avatar_url
       ),
@@ -50,47 +50,57 @@ export default async function UserProfilePage({ params }: { params: { id: string
   }));
 
   const displayName = profile.full_name || profile.username;
-  const fallback = (displayName || '?').charAt(0).toUpperCase();
 
   return (
-    <div className="max-w-3xl mx-auto py-10 px-4">
-      <div className="relative mb-16">
-        <div className="h-48 bg-slate-200 rounded-t-2xl" />
-        <div className="absolute -bottom-12 left-6">
-          <Avatar className="w-24 h-24 border-4 border-white">
-            <AvatarImage src={profile.avatar_url ?? undefined} />
-            <AvatarFallback>{fallback}</AvatarFallback>
-          </Avatar>
-        </div>
-      </div>
+    <main className="max-w-4xl mx-auto p-4">
+      {/* Profile Header */}
+      <header className="flex items-center gap-6 px-4 py-6">
+        <img
+          src={profile.avatar_url ?? ''}
+          alt={profile.username ?? 'avatar'}
+          className="h-20 w-20 rounded-full"
+        />
 
-      <div className="bg-white rounded-b-2xl p-6 -mt-8 shadow-sm ring-1 ring-slate-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">{displayName}</h1>
-            <p className="text-slate-500">@{profile.username}</p>
-          </div>
-          <div>
+        <div className="space-y-2">
+          <div className="flex items-center gap-4">
+            <p className="text-xl font-semibold">{profile.username}</p>
             {user?.id === profile.id ? (
               <Button variant="outline">Edit Profile</Button>
             ) : (
               <Button>Follow</Button>
             )}
           </div>
-        </div>
-        <div className="mt-4 text-sm text-slate-600">
-          <p>{(profile.posts[0] as any)?.count ?? 0} Posts</p>
-        </div>
-      </div>
 
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">Posts</h2>
-        {posts.length > 0 ? (
-          posts.map((p) => <PostCard key={p.id} post={p as PostRow} currentUserId={user?.id ?? null} />)
-        ) : (
-          <p className="text-slate-500">No posts yet.</p>
-        )}
-      </div>
-    </div>
+          <div className="flex gap-4 text-sm">
+            <span><b>{posts.length}</b> posts</span>
+            <span><b>0</b> followers</span>
+            <span><b>0</b> following</span>
+          </div>
+
+          <p className="text-sm font-semibold">{displayName}</p>
+        </div>
+      </header>
+
+      {/* Post Grid */}
+      {posts.length > 0 ? (
+        <div className="grid grid-cols-3 gap-1">
+          {posts.map((post: any) => (
+            <div key={post.id} className="aspect-square bg-gray-100">
+              {post.image_url &&
+                <img
+                  src={post.image_url}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              }
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center text-sm text-gray-400 py-10 col-span-3">
+          No posts yet
+        </div>
+      )}
+    </main>
   );
 }

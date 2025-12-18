@@ -33,7 +33,16 @@ export default function LoginUI() {
       }
       router.push(redirectedFrom)
     } catch (err: any) {
-      setError(err?.message ?? 'Sign-in failed')
+      const message = err?.message ?? 'Sign-in failed'
+      if (message.includes('Failed to fetch')) {
+        setError('Login failed. Please check your network connection and try again.')
+      } else if (message.includes('Invalid login credentials')) {
+        setError('Invalid email or password.')
+      } else if (message.includes('already registered')) {
+        setError('This email is already registered. Please sign in.')
+      } else {
+        setError(message)
+      }
     } finally {
       setLoading(false)
     }
