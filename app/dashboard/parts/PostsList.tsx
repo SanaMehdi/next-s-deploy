@@ -101,11 +101,27 @@ export default function PostsList({ initialPosts }: { initialPosts: Post[] }) {
                   >
                     Edit
                   </button>
-                  <form action={deletePost}>
+                  <form
+                    action={async (formData) => {
+                      try {
+                        await deletePost(formData);
+                        // Refresh the posts list after successful deletion
+                        setPosts(posts.filter(post => post.id !== p.id));
+                      } catch (error) {
+                        console.error('Error deleting post:', error);
+                        alert('Failed to delete post');
+                      }
+                    }}
+                  >
                     <input type="hidden" name="id" value={p.id} />
                     <button
                       type="submit"
                       className="rounded-lg border border-red-500 text-red-500 px-3 py-1.5 text-sm"
+                      onClick={(e) => {
+                        if (!confirm('Are you sure you want to delete this post?')) {
+                          e.preventDefault();
+                        }
+                      }}
                     >
                       Delete
                     </button>

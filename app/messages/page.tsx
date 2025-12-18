@@ -33,9 +33,28 @@ interface Conversation {
 export default function MessagesPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [currentUser, setCurrentUser] = useState<any>(null);
+
+  const loadMessages = async (conversationId: string) => {
+    if (!currentUser) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+        
+      if (error) throw error;
+      
+      setMessages(data || []);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -78,15 +97,18 @@ export default function MessagesPage() {
           .neq('user_id', user.id);
         
         // For direct messages, get the other user's info
-        const otherUser = members?.[0]?.profiles || {
-          id: 'unknown',
-          username: 'Unknown User',
-          avatar_url: 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'
-        };
+        const otherUser = Array.isArray(conversation.participants) 
+          ? conversation.participants.find((p: any) => p.id !== user?.id)
+          : conversation.participants;
+          
+        if (!otherUser) {
+          console.error('Could not find other user in conversation', conversation);
+          return null;
+        }
         
-        // Get the last message
-        const lastMessage = conversation.messages?.[0] || {
-          content: 'No messages yet',
+        const lastMessage = {
+          id: 'temp',
+          content: conversation.last_message || 'No messages yet',
           created_at: conversation.updated_at,
           sender: otherUser
         };
@@ -95,7 +117,7 @@ export default function MessagesPage() {
           id: conversation.id,
           user: {
             id: otherUser.id,
-            username: otherUser.username,
+            username: otherUser.username || 'Unknown User',
             avatar_url: otherUser.avatar_url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'
           },
           last_message: lastMessage.content,
@@ -212,7 +234,12 @@ export default function MessagesPage() {
                 className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50
                   ${!c.read ? "bg-blue-50" : ""}
                 `}
-                onClick={() => setSelected(c)}
+                onClick={() => {
+                  setSelectedConversationId(c.id);
+                  setActiveConversation(c);
+                  // Load messages for this conversation
+                  loadMessages(c.id);
+                }}
               >
                 {/* Avatar */}
                 <img

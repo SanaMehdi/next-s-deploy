@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 import PostCard from '@/components/feed/PostCard';
 import dynamic from 'next/dynamic';
+import { loadGroupPosts } from '@/lib/group-utils';
 
-// Dynamically import PostComposer to avoid SSR issues with browser APIs
+// Dynamically import PostComposer to avoid SSR issues
 const PostComposer = dynamic(
   () => import('@/components/feed/PostComposer'),
   { ssr: false }
@@ -22,6 +24,7 @@ interface Group {
 
 export default function GroupPage() {
   const params = useParams();
+  const router = useRouter();
   const [group, setGroup] = useState<Group | null>(null);
   const [posts, setPosts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,27 +69,13 @@ export default function GroupPage() {
             
           setGroup({
             ...groupData,
-            membersCount: count || 0,
-            isMember
+            members_count: count || 0,
+            is_member: isMember
           });
           
-          // Extract post loading to a separate function for reuse
-          const loadGroupPosts = async () => {
-            const { data: postsData } = await supabase
-              .from('posts')
-              .select(`
-                *,
-                author:user_id (id, username, full_name, avatar_url),
-                comments:post_comments (id, content, created_at, user_id, user:user_id (id, username, avatar_url)),
-                likes:post_likes (user_id)
-              `)
-              .eq('group_id', params.groupId)
-              .order('created_at', { ascending: false });
-              
-            setPosts(postsData || []);
-          };
-          
-          await loadGroupPosts();
+          // Load group posts
+          const postsData = await loadGroupPosts(params.groupId as string);
+          setPosts(postsData);
         }
       } catch (error) {
         console.error('Error loading group:', error);
@@ -106,7 +95,7 @@ export default function GroupPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       
-      if (group.isMember) {
+      if (group.is_member) {
         // Leave group
         await supabase
           .from('group_members')
@@ -123,8 +112,8 @@ export default function GroupPage() {
       // Update local state
       setGroup(prev => prev ? {
         ...prev,
-        isMember: !prev.isMember,
-        membersCount: prev.isMember ? prev.membersCount - 1 : prev.membersCount + 1
+        is_member: !prev.is_member,
+        members_count: prev.is_member ? prev.members_count - 1 : prev.members_count + 1
       } : null);
       
     } catch (error) {
@@ -165,7 +154,7 @@ export default function GroupPage() {
 
           <div className="flex items-center justify-between mt-3">
             <span className="text-xs text-gray-400">
-              {group.membersCount} {group.membersCount === 1 ? 'member' : 'members'}
+              {group.members_count} {group.members_count === 1 ? 'member' : 'members'}
             </span>
 
             <div className="flex items-center gap-2">
@@ -173,15 +162,15 @@ export default function GroupPage() {
                 onClick={handleJoinLeave}
                 disabled={isJoining}
                 className={`px-3 py-1 text-sm border rounded ${
-                  group.isMember 
+                  group.is_member 
                     ? 'bg-gray-100 text-gray-800' 
                     : 'bg-blue-500 text-white border-blue-500'
                 }`}
               >
-                {isJoining ? '...' : group.isMember ? 'Joined' : 'Join'}
+                {isJoining ? '...' : group.is_member ? 'Joined' : 'Join'}
               </button>
               
-              {group.isMember && (
+              {group.is_member && (
                 <button
                   onClick={() => setIsComposerOpen(true)}
                   className="px-3 py-1 text-sm border rounded hover:bg-gray-50"
@@ -224,9 +213,10 @@ export default function GroupPage() {
             <div className="bg-white w-full max-w-md rounded-lg overflow-hidden">
               <PostComposer 
                 onClose={() => setIsComposerOpen(false)}
-                onPublished={() => {
+                onPublished={async () => {
                   // Refresh posts after publishing
-                  loadGroupPosts();
+                  const updatedPosts = await loadGroupPosts(params.groupId as string);
+                  setPosts(updatedPosts);
                   setIsComposerOpen(false);
                 }}
                 groupId={group.id}
